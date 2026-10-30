@@ -8,7 +8,7 @@
 # ONE-TIME SETUP
 # Option A (recommended): npm Trusted Publishing (OIDC, no secrets)
 #   npmjs.com → package n8n-nodes-fiscalapi → Settings → Trusted Publishers →
-#   GitHub Actions: owner "fiscaIapi", repository "n8n-nodes-fiscalapi",
+#   GitHub Actions: owner "fiscalapi-br", repository "n8n-nodes-fiscalapi",
 #   workflow "publish.yml". Leave NPM_TOKEN unset.
 #   Note: the package must exist on npm before a Trusted Publisher can be
 #   added, so the very first release may need Option B.
