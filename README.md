@@ -43,7 +43,7 @@ Each operation returns the JSON response of the API as one item. The node can al
 
 1. Create an account at [app.fiscalapi.com.br](https://app.fiscalapi.com.br) and copy your API key from the dashboard.
 2. In n8n, create a **FiscalAPI API** credential and paste the key. The key is sent in the `X-API-Key` header.
-3. **API usage requires an active plan or credits.** The free monthly queries are available in the dashboard only; through the API, an account without a plan gets HTTP `402`. See [plans and limits](https://docs.fiscalapi.com.br/docs/referencia/plans-and-limits).
+3. **10 free queries per month, in the dashboard and through the API**: state registration in one state (Get by State) and Company (Get), for accounts that never had a plan, with a confirmed email and no top-up. They do not cover "Get in All States" or live CNPJ lookups. After that you need a plan or credits: the API returns HTTP `402`. Without a key it returns `403` (`API_KEY_ERROR`). See [plans and limits](https://docs.fiscalapi.com.br/docs/referencia/plans-and-limits).
 
 Testing the credential calls a free endpoint and does not consume credits.
 
@@ -58,7 +58,7 @@ Built with `@n8n/node-cli` and n8n nodes API version 1. Targets n8n 1.x and late
 - **Certificates.** `result.status` is one of `negativa`, `positiva`, `positiva_com_efeitos_de_negativa`, `nao_contribuinte`, `sem_certidao` or `erro`. When available, the certificate PDF comes in `result.pdf_base64`. Use the **Convert to File** node to turn it into a file.
 - **NF-e XML.** Requires the A1 certificate (.pfx/.p12) of a party to the invoice (issuer, recipient, carrier or authorized party) and its password. Load the certificate with **Read/Write Files from Disk** or an HTTP download and keep the default *Binary Property* source, or paste it as Base64. The certificate is not stored by FiscalAPI. You are only charged when the XML is returned.
 - **Long queries.** NF-e and SIGEF queries can take up to 3 minutes. The node waits up to 200 seconds.
-- **Errors.** `402` means no active plan or no credits left. `429` means the per-minute limit of your plan was reached; enable **Retry On Fail** in the node settings to retry automatically.
+- **Errors.** `402` means the free monthly queries, the plan or the credits ran out. `429` means the per-minute limit of your plan was reached; enable **Retry On Fail** in the node settings to retry automatically.
 
 ## Example workflows
 
@@ -86,6 +86,10 @@ Built with `@n8n/node-cli` and n8n nodes API version 1. Targets n8n 1.x and late
 ## Resources
 
 - [FiscalAPI documentation](https://docs.fiscalapi.com.br)
+- [Guides](https://docs.fiscalapi.com.br/docs/guias) (n8n, Make, Power Automate, Excel, Google Sheets, Python, Node.js, PHP)
+- [OpenAPI specification](https://docs.fiscalapi.com.br/openapi.json)
+- [MCP server](https://github.com/fiscalapi-br/fiscalapi-mcp)
+- [FiscalAPI for developers](https://fiscalapi.com.br/desenvolvedores/)
 - [Authentication](https://docs.fiscalapi.com.br/docs/getting-started/authentication)
 - [Error handling](https://docs.fiscalapi.com.br/docs/referencia/error-handling)
 - [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
