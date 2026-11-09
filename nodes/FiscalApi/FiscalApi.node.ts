@@ -3,8 +3,10 @@ import {
 	certificateDescription,
 	companyDescription,
 	nfeDescription,
+	nfseDescription,
 	producerProfileDescription,
 	ruralPropertyDescription,
+	simplesNacionalDescription,
 	stateRegistrationDescription,
 } from './resources';
 
@@ -62,6 +64,11 @@ export class FiscalApi implements INodeType {
 						description: 'Electronic invoice (NF-e) XML by access key',
 					},
 					{
+						name: 'NFS-e',
+						value: 'nfse',
+						description: 'Service invoice (NFS-e, national standard) by access key',
+					},
+					{
 						name: 'Producer Profile',
 						value: 'producerProfile',
 						description: 'Consolidated rural producer profile',
@@ -70,6 +77,11 @@ export class FiscalApi implements INodeType {
 						name: 'Rural Property',
 						value: 'ruralProperty',
 						description: 'Rural properties in SIGEF and CNIR',
+					},
+					{
+						name: 'Simples Nacional',
+						value: 'simplesNacional',
+						description: 'Simples Nacional and SIMEI status by CNPJ',
 					},
 					{
 						name: 'State Registration',
@@ -82,8 +94,10 @@ export class FiscalApi implements INodeType {
 			...certificateDescription,
 			...companyDescription,
 			...nfeDescription,
+			...nfseDescription,
 			...producerProfileDescription,
 			...ruralPropertyDescription,
+			...simplesNacionalDescription,
 			...stateRegistrationDescription,
 		],
 	};

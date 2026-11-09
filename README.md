@@ -2,7 +2,7 @@
 
 This is an n8n community node. It lets you use [FiscalAPI](https://fiscalapi.com.br) in your n8n workflows.
 
-FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e XML by access key and rural property records (SIGEF and CNIR).
+FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e XML and NFS-e by access key, Simples Nacional status and rural property records (SIGEF and CNIR).
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
 
@@ -32,6 +32,8 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 | Certificate | Get FGTS CRF | `GET /api/consultar-crf-fgts` |
 | Certificate | Get All Certificates | `GET /api/certidoes-todas` |
 | NFe | Get XML | `POST /api/consultar-nfe-xml` |
+| NFS-e | Get (by access key) | `GET /api/consultar-nfse` |
+| Simples Nacional | Get (by CNPJ) | `GET /api/consultar-simples-nacional` |
 | Rural Property | Get SIGEF Parcels | `GET /api/consultar-sigef` |
 | Rural Property | Get SIGEF Parcel (by UUID) | `GET /api/consultar-sigef-parcela` |
 | Rural Property | Get CNIR Properties | `GET /api/consultar-cnir` |
