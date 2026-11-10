@@ -13,7 +13,7 @@ export const simplesNacionalDescription: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				action: 'Get the Simples Nacional status of a CNPJ',
+				action: 'Get the simplified tax regime status of a CNPJ',
 				description: 'Get the Simples Nacional and SIMEI status of a CNPJ',
 				routing: {
 					request: { method: 'GET', url: '/api/consultar-simples-nacional' },

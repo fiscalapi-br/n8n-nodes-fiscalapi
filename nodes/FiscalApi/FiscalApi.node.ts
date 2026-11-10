@@ -64,7 +64,7 @@ export class FiscalApi implements INodeType {
 						description: 'Electronic invoice (NF-e) XML by access key',
 					},
 					{
-						name: 'NFS-e',
+						name: 'NFSe',
 						value: 'nfse',
 						description: 'Service invoice (NFS-e, national standard) by access key',
 					},
