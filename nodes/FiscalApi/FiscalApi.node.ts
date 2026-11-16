@@ -3,6 +3,7 @@ import {
 	certificateDescription,
 	companyDescription,
 	cteDescription,
+	difalDescription,
 	nfeDescription,
 	nfseDescription,
 	producerProfileDescription,
@@ -65,6 +66,11 @@ export class FiscalApi implements INodeType {
 						description: 'Transport document (CT-e, CT-e OS, GTV-e) XML by access key',
 					},
 					{
+						name: 'DIFAL',
+						value: 'difal',
+						description: 'Outbound DIFAL (EC 87/2015) per destination state, with the issuer certificate (beta)',
+					},
+					{
 						name: 'NFe',
 						value: 'nfe',
 						description: 'Electronic invoice (NF-e) XML by access key',
@@ -100,6 +106,7 @@ export class FiscalApi implements INodeType {
 			...certificateDescription,
 			...companyDescription,
 			...cteDescription,
+			...difalDescription,
 			...nfeDescription,
 			...nfseDescription,
 			...producerProfileDescription,
