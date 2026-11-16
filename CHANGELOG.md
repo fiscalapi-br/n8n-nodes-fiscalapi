@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - New resource: CTe (Get XML by access key, using the A1 certificate of a party to the document).
 
