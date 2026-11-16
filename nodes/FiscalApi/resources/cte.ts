@@ -13,7 +13,7 @@ export const cteDescription: INodeProperties[] = [
 		displayOptions: { show: { resource } },
 		options: [
 			{
-				name: 'Get CT-e XML',
+				name: 'Get XML',
 				value: 'getXml',
 				action: 'Get the XML of a transport document by access key',
 				description:

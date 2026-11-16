@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- New resource: CTe (Get CT-e XML by access key, using the A1 certificate of a party to the document).
+- New resource: CTe (Get XML by access key, using the A1 certificate of a party to the document).
 
 ## 0.2.0
 
