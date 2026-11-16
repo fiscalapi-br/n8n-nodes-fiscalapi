@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- New resource: CTe (Get XML by access key, using the A1 certificate of a party to the document).
+
 ## 0.2.0
 
 - New resources: NFS-e (Get by access key, optional DANFSe PDF) and Simples Nacional (Get by CNPJ).
