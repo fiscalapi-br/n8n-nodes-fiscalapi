@@ -2,6 +2,7 @@ import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from '
 import {
 	certificateDescription,
 	companyDescription,
+	cteDescription,
 	nfeDescription,
 	nfseDescription,
 	producerProfileDescription,
@@ -59,6 +60,11 @@ export class FiscalApi implements INodeType {
 						description: 'Company registration data by CNPJ',
 					},
 					{
+						name: 'CTe',
+						value: 'cte',
+						description: 'Transport document (CT-e, CT-e OS, GTV-e) XML by access key',
+					},
+					{
 						name: 'NFe',
 						value: 'nfe',
 						description: 'Electronic invoice (NF-e) XML by access key',
@@ -93,6 +99,7 @@ export class FiscalApi implements INodeType {
 			},
 			...certificateDescription,
 			...companyDescription,
+			...cteDescription,
 			...nfeDescription,
 			...nfseDescription,
 			...producerProfileDescription,

@@ -31,6 +31,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 | Certificate | Get CNDT (Labor Debts) | `GET /api/consultar-cndt` |
 | Certificate | Get FGTS CRF | `GET /api/consultar-crf-fgts` |
 | Certificate | Get All Certificates | `GET /api/certidoes-todas` |
+| CTe | Get CT-e XML | `POST /api/consultar-cte-xml` |
 | NFe | Get XML | `POST /api/consultar-nfe-xml` |
 | NFS-e | Get (by access key) | `GET /api/consultar-nfse` |
 | Simples Nacional | Get (by CNPJ) | `GET /api/consultar-simples-nacional` |
