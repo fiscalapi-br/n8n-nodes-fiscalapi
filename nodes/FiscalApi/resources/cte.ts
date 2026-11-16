@@ -33,7 +33,7 @@ export const cteDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		placeholder: 'e.g. 51261011222333000181570010000001231123456784',
-		description: 'CT-e access key (44 digits)',
+		description: 'CT-e access key (44 characters)',
 		displayOptions: { show },
 	},
 	{

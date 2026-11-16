@@ -28,10 +28,20 @@ export async function sendDocument(
  */
 async function readKeyAndCertificate(
 	context: IExecuteSingleFunctions,
+	alphanumericKey = false,
 ): Promise<{ chave: string; certificado: string; senha: string }> {
-	const accessKey = String(context.getNodeParameter('accessKey') ?? '').replace(/\D/g, '');
+	const rawKey = String(context.getNodeParameter('accessKey') ?? '');
+	// CT-e keys may carry an alphanumeric CNPJ; NF-e keys are digits only.
+	const accessKey = alphanumericKey
+		? rawKey.replace(/[^0-9A-Za-z]/g, '').toUpperCase()
+		: rawKey.replace(/\D/g, '');
 	if (accessKey.length !== 44) {
-		throw new NodeOperationError(context.getNode(), 'The access key must have 44 digits');
+		throw new NodeOperationError(
+			context.getNode(),
+			alphanumericKey
+				? 'The access key must have 44 characters'
+				: 'The access key must have 44 digits',
+		);
 	}
 
 	const source = context.getNodeParameter('certificateSource') as string;
@@ -76,6 +86,6 @@ export async function sendCteBody(
 	this: IExecuteSingleFunctions,
 	requestOptions: IHttpRequestOptions,
 ): Promise<IHttpRequestOptions> {
-	requestOptions.body = await readKeyAndCertificate(this);
+	requestOptions.body = await readKeyAndCertificate(this, true);
 	return requestOptions;
 }
