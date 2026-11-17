@@ -1,6 +1,7 @@
 export { certificateDescription } from './certificate';
 export { companyDescription } from './company';
 export { cteDescription } from './cte';
+export { difalDescription } from './difal';
 export { nfeDescription } from './nfe';
 export { nfseDescription } from './nfse';
 export { producerProfileDescription } from './producerProfile';

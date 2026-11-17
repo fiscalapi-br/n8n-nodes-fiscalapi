@@ -2,7 +2,7 @@
 
 This is an n8n community node. It lets you use [FiscalAPI](https://fiscalapi.com.br) in your n8n workflows.
 
-FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e XML and NFS-e by access key, Simples Nacional status and rural property records (SIGEF and CNIR).
+FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e and CT-e XML and NFS-e by access key, outbound DIFAL per destination state, Simples Nacional status and rural property records (SIGEF and CNIR).
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
 
@@ -32,6 +32,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 | Certificate | Get FGTS CRF | `GET /api/consultar-crf-fgts` |
 | Certificate | Get All Certificates | `GET /api/certidoes-todas` |
 | CTe | Get XML | `POST /api/consultar-cte-xml` |
+| DIFAL | Get Outbound DIFAL (beta) | `POST /api/consultar-difal-saida` |
 | NFe | Get XML | `POST /api/consultar-nfe-xml` |
 | NFS-e | Get (by access key) | `GET /api/consultar-nfse` |
 | Simples Nacional | Get (by CNPJ) | `GET /api/consultar-simples-nacional` |
@@ -60,6 +61,7 @@ Built with `@n8n/node-cli` and n8n nodes API version 1. Targets n8n 1.x and late
 - **Source status.** A successful response may include `source_status.status` other than `success` (for example `timeout` when a government service did not answer in time). Check this field before concluding that a document has no record. In "Get in All States", `complete: false` means at least one state failed.
 - **Certificates.** `result.status` is one of `negativa`, `positiva`, `positiva_com_efeitos_de_negativa`, `nao_contribuinte`, `sem_certidao` or `erro`. When available, the certificate PDF comes in `result.pdf_base64`. Use the **Convert to File** node to turn it into a file.
 - **NF-e XML.** Requires the A1 certificate (.pfx/.p12) of a party to the invoice (issuer, recipient, carrier or authorized party) and its password. Load the certificate with **Read/Write Files from Disk** or an HTTP download and keep the default *Binary Property* source, or paste it as Base64. The certificate is not stored by FiscalAPI. You are only charged when the XML is returned.
+- **Outbound DIFAL (beta).** Requires the A1 certificate of the **issuer** of the invoices and its password, plus the month (`YYYY-MM`). Leave *Destination States* empty to check all 10 covered states (AC, AP, DF, GO, MS, MT, RR, RS, SC, SE). Each state comes in `ufs[]` with a `status`: only `ok` is charged (one query per state). Only `paga` settles a note: `sem_guia_no_portal`, `pendente_pagamento` and `geracao_rejeitada` add up to `valor_em_aberto`, except in DF, GO and MT, where the slip is issued in the state tax system and a `sem_guia_no_portal` note adds up to `valor_a_conferir` (the state comes with a `mensagem` explaining it). Payment slips issued outside the portal (ERP, Portal GNRE) do not show up. `completo: false` means at least one state did not come back complete. See the [documentation](https://docs.fiscalapi.com.br/docs/difal/consultar-difal-saida).
 - **Long queries.** NF-e and SIGEF queries can take up to 3 minutes. The node waits up to 200 seconds.
 - **Errors.** `402` means the free monthly queries, the plan or the credits ran out. `429` means the per-minute limit of your plan was reached; enable **Retry On Fail** in the node settings to retry automatically.
 
