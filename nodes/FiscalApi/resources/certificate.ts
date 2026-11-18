@@ -79,6 +79,20 @@ export const certificateDescription: INodeProperties[] = [
 	stateField({ resource, operation: ['getStateCnd'] }),
 	...documentFields({ resource, operation: allOperations }),
 	{
+		displayName: 'Date of Birth',
+		name: 'dataNascimento',
+		type: 'string',
+		default: '',
+		required: true,
+		placeholder: 'e.g. 12/04/1985',
+		description:
+			'Date of birth of the CPF holder (DD/MM/YYYY or YYYY-MM-DD). Receita Federal requires it to issue the federal CND for a CPF.',
+		displayOptions: { show: { resource, operation: ['getFederalCnd'], documentType: ['cpf'] } },
+		routing: {
+			send: { type: 'query', property: 'data_nascimento' },
+		},
+	},
+	{
 		displayName: 'Issue New Certificate',
 		name: 'emitirNova',
 		type: 'boolean',

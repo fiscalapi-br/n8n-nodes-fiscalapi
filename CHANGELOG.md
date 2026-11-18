@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Certificate → Get Federal CND now works for a CPF: new Date of Birth field, shown when the document type is CPF (Receita Federal requires it).
+
 ## 0.4.0
 
 - New resource: DIFAL (Get Outbound DIFAL, beta): NF-e with DIFAL and FCP, payment slip status and open amount per destination state for one month, using the A1 certificate of the issuer.
