@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0
+
+- New resource: NFe Monitor (Add Keys, Remove Keys, Get Many with cursor pagination, Get). Webhook notices are received with n8n's Webhook node; the README shows how to verify the `X-FiscalAPI-Assinatura` signature in a Code node.
+
 ## 0.5.0
 
 - Certificate → Get Federal CND now works for a CPF: new Date of Birth field, shown when the document type is CPF (Receita Federal requires it).
