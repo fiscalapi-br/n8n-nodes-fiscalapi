@@ -107,7 +107,7 @@ Notices arrive as an HTTP POST with JSON. Use n8n's built-in **Webhook** node to
    const valid =
      fresh &&
      signatures.some(
-       (s) => s.length === expected.length && crypto.timingSafeEqual(Buffer.from(s), Buffer.from(expected)),
+       (s) => /^[0-9a-f]{64}$/i.test(s) && crypto.timingSafeEqual(Buffer.from(s), Buffer.from(expected)),
      );
 
    return [{ json: { valid, notice: valid ? JSON.parse(raw.toString('utf8')) : null } }];
