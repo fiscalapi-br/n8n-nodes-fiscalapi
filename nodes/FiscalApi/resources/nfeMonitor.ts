@@ -29,7 +29,7 @@ export const nfeMonitorDescription: INodeProperties[] = [
 			{
 				name: 'Add Keys',
 				value: 'addKeys',
-				action: 'Add NF-e access keys to the monitor',
+				action: 'Add invoice access keys to the monitor',
 				description:
 					'Start monitoring up to 1,000 NF-e keys. Each accepted key is charged once; already monitored and invalid keys are not charged.',
 				routing: {
@@ -40,7 +40,7 @@ export const nfeMonitorDescription: INodeProperties[] = [
 			{
 				name: 'Get',
 				value: 'get',
-				action: 'Get a monitored NF-e key',
+				action: 'Get a monitored invoice',
 				description: 'Get the status, events, next check and failed webhook deliveries of one monitored key',
 				routing: {
 					request: { method: 'GET', url: '/api/monitor-nfe/chaves' },
@@ -50,7 +50,7 @@ export const nfeMonitorDescription: INodeProperties[] = [
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				action: 'Get many monitored NF-e keys',
+				action: 'Get many monitored invoices',
 				description: 'Get many monitored NF-e keys, following the pagination cursor',
 				routing: {
 					request: { method: 'GET', url: '/api/monitor-nfe/chaves' },
@@ -61,7 +61,7 @@ export const nfeMonitorDescription: INodeProperties[] = [
 			{
 				name: 'Remove Keys',
 				value: 'removeKeys',
-				action: 'Remove NF-e access keys from the monitor',
+				action: 'Remove invoice access keys from the monitor',
 				description: 'Stop monitoring up to 1,000 NF-e keys. No refund and no webhook notice.',
 				routing: {
 					request: { method: 'POST', url: '/api/monitor-nfe/chaves/remover' },
