@@ -3,6 +3,7 @@ export { companyDescription } from './company';
 export { cteDescription } from './cte';
 export { difalDescription } from './difal';
 export { nfeDescription } from './nfe';
+export { nfeMonitorDescription } from './nfeMonitor';
 export { nfseDescription } from './nfse';
 export { producerProfileDescription } from './producerProfile';
 export { ruralPropertyDescription } from './ruralProperty';

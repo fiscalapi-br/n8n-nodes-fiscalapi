@@ -1,8 +1,11 @@
 import {
 	NodeOperationError,
+	type DeclarativeRestApiSettings,
 	type IDataObject,
+	type IExecutePaginationFunctions,
 	type IExecuteSingleFunctions,
 	type IHttpRequestOptions,
+	type INodeExecutionData,
 } from 'n8n-workflow';
 
 /**
@@ -118,4 +121,100 @@ export async function sendDifalBody(
 	}
 	requestOptions.body = body;
 	return requestOptions;
+}
+
+const MONITOR_MAX_KEYS = 1000;
+
+/**
+ * Reads the list of NF-e keys of the monitor: a string with keys separated by
+ * commas, spaces or new lines, or an array (from an expression).
+ */
+function readMonitorKeys(context: IExecuteSingleFunctions): string[] {
+	const raw = context.getNodeParameter('accessKeys') as unknown;
+	const parts = Array.isArray(raw) ? raw.map((k) => String(k)) : String(raw ?? '').split(/[\s,;]+/);
+	const keys = parts.map((k) => k.replace(/\D/g, '')).filter((k) => k.length > 0);
+	if (keys.length === 0) {
+		throw new NodeOperationError(context.getNode(), 'At least one access key is required');
+	}
+	if (keys.length > MONITOR_MAX_KEYS) {
+		throw new NodeOperationError(
+			context.getNode(),
+			`Send at most ${MONITOR_MAX_KEYS} access keys per call`,
+			{ description: 'Split the list with the Loop Over Items node' },
+		);
+	}
+	return keys;
+}
+
+/**
+ * Builds the JSON body of the monitor registration: the keys, the status the
+ * user already knows and the monitoring period in days.
+ */
+export async function sendMonitorAddBody(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	const knownStatus = this.getNodeParameter('knownStatus', 'autorizada') as string;
+	const days = Number(this.getNodeParameter('monitoringDays', 180));
+	if (!Number.isInteger(days) || days < 1 || days > 180) {
+		throw new NodeOperationError(this.getNode(), 'Monitoring Days must be a whole number from 1 to 180');
+	}
+	requestOptions.body = {
+		chaves: readMonitorKeys(this).map((chave) => ({ chave, status_conhecido: knownStatus })),
+		prazo_dias: days,
+	};
+	return requestOptions;
+}
+
+/**
+ * Builds the JSON body of the monitor removal.
+ */
+export async function sendMonitorRemoveBody(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	requestOptions.body = { chaves: readMonitorKeys(this) };
+	return requestOptions;
+}
+
+/**
+ * Appends the access key to the URL of the monitored key detail.
+ */
+export async function sendMonitorKeyInPath(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	const accessKey = String(this.getNodeParameter('accessKey') ?? '').replace(/\D/g, '');
+	if (accessKey.length !== 44) {
+		throw new NodeOperationError(this.getNode(), 'The access key must have 44 digits');
+	}
+	requestOptions.url = `${requestOptions.url}/${accessKey}`;
+	return requestOptions;
+}
+
+/**
+ * Follows `proximo_cursor` of the monitor listing and returns one item per
+ * monitored key, up to the limit (or all of them with Return All).
+ */
+export async function paginateMonitoredKeys(
+	this: IExecutePaginationFunctions,
+	requestData: DeclarativeRestApiSettings.ResultOptions,
+): Promise<INodeExecutionData[]> {
+	const returnAll = this.getNodeParameter('returnAll', false) as boolean;
+	const limit = returnAll ? Infinity : Number(this.getNodeParameter('limit', 50));
+	const items: INodeExecutionData[] = [];
+	const baseQs = { ...((requestData.options.qs as IDataObject) ?? {}) };
+	let cursor: string | undefined;
+	do {
+		const pageSize = Math.min(MONITOR_MAX_KEYS, Math.max(1, limit - items.length));
+		requestData.options.qs = { ...baseQs, limite: pageSize, ...(cursor ? { cursor } : {}) };
+		const [page] = await this.makeRoutingRequest(requestData);
+		const body = (page?.json ?? {}) as IDataObject;
+		for (const item of (body.itens as IDataObject[] | undefined) ?? []) {
+			if (items.length >= limit) break;
+			items.push({ json: item });
+		}
+		cursor = typeof body.proximo_cursor === 'string' && body.proximo_cursor ? body.proximo_cursor : undefined;
+	} while (cursor && items.length < limit);
+	return items;
 }
