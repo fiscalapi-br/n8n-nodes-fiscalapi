@@ -7,6 +7,7 @@ import {
 	nfeDescription,
 	nfeMonitorDescription,
 	nfseDescription,
+	nfseIssuanceDescription,
 	producerProfileDescription,
 	ruralPropertyDescription,
 	simplesNacionalDescription,
@@ -22,7 +23,7 @@ export class FiscalApi implements INodeType {
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description:
-			'Query Brazilian state registrations (IE), CNPJ, tax clearance certificates, NF-e XML, NF-e monitor and rural properties',
+			'Query Brazilian state registrations (IE), CNPJ, tax clearance certificates, NF-e XML, NF-e monitor and rural properties, and issue NFS-e',
 		defaults: {
 			name: 'FiscalAPI',
 		},
@@ -88,6 +89,12 @@ export class FiscalApi implements INodeType {
 						description: 'Service invoice (NFS-e, national standard) by access key',
 					},
 					{
+						name: 'NFSe Issuance',
+						value: 'nfseIssuance',
+						description:
+							'Issue, get, cancel and download national-standard NFS-e with the A1 certificate of your company',
+					},
+					{
 						name: 'Producer Profile',
 						value: 'producerProfile',
 						description: 'Consolidated rural producer profile',
@@ -117,6 +124,7 @@ export class FiscalApi implements INodeType {
 			...nfeDescription,
 			...nfeMonitorDescription,
 			...nfseDescription,
+			...nfseIssuanceDescription,
 			...producerProfileDescription,
 			...ruralPropertyDescription,
 			...simplesNacionalDescription,

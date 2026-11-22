@@ -218,3 +218,127 @@ export async function paginateMonitoredKeys(
 	} while (cursor && items.length < limit);
 	return items;
 }
+
+const NFSE_MAX_PAGE = 100;
+
+/**
+ * Replaces `{id}` in the URL with the issued NFS-e ID (a UUID returned by Issue).
+ */
+export async function sendIssuedNfseIdInPath(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	const id = String(this.getNodeParameter('invoiceId') ?? '').trim();
+	if (!id) {
+		throw new NodeOperationError(this.getNode(), 'The invoice ID is required', {
+			description: 'Use the "id" returned by Issue or Get Many',
+		});
+	}
+	requestOptions.url = String(requestOptions.url).replace('{id}', encodeURIComponent(id));
+	return requestOptions;
+}
+
+/**
+ * Builds the JSON body of the NFS-e issuance: the invoice data (JSON) plus the
+ * company ID, the environment, the reference and the preset.
+ */
+export async function sendNfseIssueBody(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	const raw = this.getNodeParameter('invoiceData') as unknown;
+	let data: IDataObject;
+	try {
+		data = (typeof raw === 'string' ? JSON.parse(raw) : raw) as IDataObject;
+	} catch {
+		throw new NodeOperationError(this.getNode(), 'Invoice Data must be valid JSON');
+	}
+	if (!data || typeof data !== 'object' || Array.isArray(data)) {
+		throw new NodeOperationError(this.getNode(), 'Invoice Data must be a JSON object', {
+			description: 'With competencia, tomador, servico and valores',
+		});
+	}
+	const companyId = String(this.getNodeParameter('companyId') ?? '').trim();
+	if (!companyId) {
+		throw new NodeOperationError(this.getNode(), 'The company ID is required');
+	}
+	const environment = this.getNodeParameter('environment') as string;
+	const reference = String(this.getNodeParameter('reference', '') ?? '').trim();
+	if (environment === 'producao' && !reference) {
+		throw new NodeOperationError(this.getNode(), 'Reference is required in production', {
+			description: 'Use your order or sale ID: the same reference never becomes two invoices',
+		});
+	}
+	const preset = this.getNodeParameter('preset', '') as string;
+	const body: IDataObject = { ...data, empresa_id: companyId, ambiente: environment };
+	if (reference) body.referencia = reference;
+	if (preset) body.preset = preset;
+	requestOptions.body = body;
+	return requestOptions;
+}
+
+/**
+ * Builds the JSON body of the NFS-e cancellation.
+ */
+export async function sendNfseCancelBody(
+	this: IExecuteSingleFunctions,
+	requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+	const justification = String(this.getNodeParameter('justification') ?? '').trim();
+	if (justification.length < 15 || justification.length > 255) {
+		throw new NodeOperationError(this.getNode(), 'The justification must have 15 to 255 characters');
+	}
+	requestOptions.body = {
+		motivo: Number(this.getNodeParameter('cancelReason')),
+		justificativa: justification,
+	};
+	return requestOptions;
+}
+
+/**
+ * Runs after n8n's built-in `binaryData` step: names the XML or PDF file, sets
+ * its MIME type and leaves a small JSON with the invoice ID.
+ */
+export async function nameIssuedNfseFile(
+	this: IExecuteSingleFunctions,
+	items: INodeExecutionData[],
+): Promise<INodeExecutionData[]> {
+	const isPdf = (this.getNodeParameter('operation') as string) === 'getPdf';
+	const id = String(this.getNodeParameter('invoiceId') ?? '').trim();
+	const fileName = isPdf ? `danfse-${id}.pdf` : `nfse-${id}.xml`;
+	return items.map((item) => {
+		for (const file of Object.values(item.binary ?? {})) {
+			file.fileName = fileName;
+			file.fileExtension = isPdf ? 'pdf' : 'xml';
+			file.mimeType = isPdf ? 'application/pdf' : 'application/xml';
+		}
+		return { ...item, json: { id, fileName } };
+	});
+}
+
+/**
+ * Follows the `proximo` cursor of the issued NFS-e listing and returns one item
+ * per invoice, up to the limit (or all of them with Return All).
+ */
+export async function paginateIssuedNfse(
+	this: IExecutePaginationFunctions,
+	requestData: DeclarativeRestApiSettings.ResultOptions,
+): Promise<INodeExecutionData[]> {
+	const returnAll = this.getNodeParameter('returnAll', false) as boolean;
+	const limit = returnAll ? Infinity : Number(this.getNodeParameter('limit', 50));
+	const items: INodeExecutionData[] = [];
+	const baseQs = { ...((requestData.options.qs as IDataObject) ?? {}) };
+	let cursor: string | undefined;
+	do {
+		const pageSize = Math.min(NFSE_MAX_PAGE, Math.max(1, limit - items.length));
+		requestData.options.qs = { ...baseQs, limite: pageSize, ...(cursor ? { cursor } : {}) };
+		const [page] = await this.makeRoutingRequest(requestData);
+		const body = (page?.json ?? {}) as IDataObject;
+		for (const item of (body.itens as IDataObject[] | undefined) ?? []) {
+			if (items.length >= limit) break;
+			items.push({ json: item });
+		}
+		cursor = typeof body.proximo === 'string' && body.proximo ? body.proximo : undefined;
+	} while (cursor && items.length < limit);
+	return items;
+}

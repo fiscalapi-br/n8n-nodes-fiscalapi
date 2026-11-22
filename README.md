@@ -2,7 +2,7 @@
 
 This is an n8n community node. It lets you use [FiscalAPI](https://fiscalapi.com.br) in your n8n workflows.
 
-FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e and CT-e XML and NFS-e by access key, NF-e monitoring by access key with webhook notices, outbound DIFAL per destination state, Simples Nacional status and rural property records (SIGEF and CNIR).
+FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e and CT-e XML and NFS-e by access key, NF-e monitoring by access key with webhook notices, NFS-e issuance (national standard), outbound DIFAL per destination state, Simples Nacional status and rural property records (SIGEF and CNIR).
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
 
@@ -12,6 +12,7 @@ FiscalAPI is a Brazilian REST API for tax and registration lookups: state regist
 - [Compatibility](#compatibility)
 - [Usage](#usage)
 - [Receiving NF-e Monitor notices](#receiving-nf-e-monitor-notices)
+- [Issuing NFS-e](#issuing-nfs-e)
 - [Example workflows](#example-workflows)
 - [Resources](#resources)
 
@@ -40,13 +41,19 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 | NFe Monitor | Get Many | `GET /api/monitor-nfe/chaves` |
 | NFe Monitor | Get | `GET /api/monitor-nfe/chaves/{chave}` |
 | NFS-e | Get (by access key) | `GET /api/consultar-nfse` |
+| NFSe Issuance | Issue | `POST /api/nfse/notas` |
+| NFSe Issuance | Get | `GET /api/nfse/notas/{id}` |
+| NFSe Issuance | Get Many | `GET /api/nfse/notas` |
+| NFSe Issuance | Cancel | `POST /api/nfse/notas/{id}/cancelamento` |
+| NFSe Issuance | Get XML | `GET /api/nfse/notas/{id}/xml` |
+| NFSe Issuance | Get PDF | `GET /api/nfse/notas/{id}/pdf` |
 | Simples Nacional | Get (by CNPJ) | `GET /api/consultar-simples-nacional` |
 | Rural Property | Get SIGEF Parcels | `GET /api/consultar-sigef` |
 | Rural Property | Get SIGEF Parcel (by UUID) | `GET /api/consultar-sigef-parcela` |
 | Rural Property | Get CNIR Properties | `GET /api/consultar-cnir` |
 | Producer Profile | Get | `GET /api/perfil-produtor` |
 
-Each operation returns the JSON response of the API as one item (NFe Monitor → Get Many returns one item per monitored key). The node can also be used as a tool by AI agents.
+Each operation returns the JSON response of the API as one item (NFe Monitor → Get Many returns one item per monitored key, NFSe Issuance → Get Many one item per invoice, and Get XML / Get PDF a binary file). The node can also be used as a tool by AI agents.
 
 ## Credentials
 
@@ -116,6 +123,35 @@ Notices arrive as an HTTP POST with JSON. Use n8n's built-in **Webhook** node to
 4. *IF* `{{ $json.valid }}` is true → continue with `{{ $json.notice }}`. Deduplicate by `notice.id`: delivery is "at least once".
 
 Self-hosted n8n needs `NODE_FUNCTION_ALLOW_BUILTIN=crypto` for `require('crypto')`; if `$env` access is blocked, paste the secret in the Code node instead. The signature header is `v1=` + HMAC-SHA256 (hex) of `"{timestamp}." + raw body`, keyed with the whole `whsec_...` secret; after a secret rotation it carries `v1=new,v1=old` for 24 h, which the snippet accepts. Notice types: `nfe.status_alterado` (cancellation comes here), `nfe.evento_registrado`, `nfe.monitoramento_encerrado` and `teste`. Answer within 10 seconds (the Webhook node answers right away by default).
+
+## Issuing NFS-e
+
+The **NFSe Issuance** resource issues national-standard NFS-e for your company, signed with the company's own A1 certificate. Homologation (testing) is free, up to 1,000 invoices a month; in production only authorized invoices are charged.
+
+One-time setup, with the API (the certificate never goes through the workflow):
+
+1. Send the A1 certificate (e-CNPJ ICP-Brasil, `.pfx`):
+   ```bash
+   curl -X PUT https://api.fiscalapi.com.br/api/nfse/certificados \
+     -H "X-API-Key: $FISCALAPI_API_KEY" -F "certificado=@empresa.pfx" -F "senha=$SENHA_CERTIFICADO"
+   ```
+2. Register the issuing company and keep its `id` (the *Company ID* of the node). Fictitious example:
+   ```bash
+   curl -X POST https://api.fiscalapi.com.br/api/nfse/empresas \
+     -H "X-API-Key: $FISCALAPI_API_KEY" -H "Content-Type: application/json" \
+     -d '{"cnpj": "11.222.333/0001-81", "razao_social": "Exemplo Servicos de Tecnologia Ltda", "im": "123456",
+          "cod_mun_ibge": "4106902", "regime": {"op_simp_nac": 3, "reg_ap_trib_sn": 1}, "serie": "00001"}'
+   ```
+3. Optional: `PUT /api/nfse/webhook` with your n8n Webhook URL. The `segredo` comes only in the first response; keep it.
+
+Then, in the workflow:
+
+- **Issue.** *Company ID*, *Environment* (start with Homologation), *Reference* (your order or sale ID; required in production, and sending it again returns the same invoice instead of a new one), *Preset* and *Invoice Data (JSON)* with `competencia`, `tomador`, `servico` and `valores` in the API format. The answer is `202` with `status: pendente`; check `avisos` (they do not block the invoice). Invalid data returns `422` with the field.
+- **Get** / **Get Many.** `status` becomes `autorizada` (with `chave_acesso` and `numero_nfse`) or `rejeitada` (with `erros`) within seconds. Get Many with *Updated Since* syncs what changed; deduplicate by `id`.
+- **Get XML** / **Get PDF.** Return the authorized XML or the DANFSe PDF as a binary file (`data` by default), ready for *Write Files to Disk*, e-mail or storage.
+- **Cancel.** Reason and a justification of 15 to 255 characters. The invoice goes to `cancelando`; the result (`cancelada` or `cancelamento_recusado`) comes by webhook or Get.
+
+The issuance webhook uses the same signature scheme as the NF-e Monitor, so the Code node above verifies it too (use the issuance secret). Its body is the invoice plus `evento` (`autorizada`, `rejeitada`, `cancelada`, `substituida` or `cancelamento_recusado`); deduplicate by the `x-fiscalapi-entrega` header + `updated_at`, and filter by `ambiente` (both environments go to the same URL). Fields, presets, IBS/CBS and errors: [issuance documentation](https://docs.fiscalapi.com.br/docs/emissao-nfse/visao-geral).
 
 ## Example workflows
 
