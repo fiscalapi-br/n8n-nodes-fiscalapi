@@ -97,7 +97,7 @@ export const nfseIssuanceDescription: INodeProperties[] = [
 			{
 				name: 'Get PDF',
 				value: 'getPdf',
-				action: 'Get the DANFSe PDF of an issued service invoice',
+				action: 'Get the PDF of an issued service invoice',
 				description: 'Download the DANFSe (PDF) of an authorized NFS-e as a binary file. Not charged.',
 				routing: {
 					request: {
@@ -217,7 +217,7 @@ export const nfseIssuanceDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		placeholder: 'e.g. 3b8e2f4a-6c1d-4e9f-8a7b-2c3d4e5f6a7b',
-		description: 'The "id" returned by Issue or Get Many',
+		description: 'The ID returned by Issue or Get Many',
 		displayOptions: { show: { resource, operation: ['get', 'cancel', ...fileOperations] } },
 	},
 	{
