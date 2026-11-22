@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+
+- New resource: NFSe Issuance (Issue, Get, Get Many with cursor pagination, Cancel, Get XML and Get PDF as binary files). The A1 certificate and the issuing company are registered once through the API; the README shows the setup and how the issuance webhook reuses the NF-e Monitor signature check.
+
 ## 0.6.0
 
 - New resource: NFe Monitor (Add Keys, Remove Keys, Get Many with cursor pagination, Get). Webhook notices are received with n8n's Webhook node; the README shows how to verify the `X-FiscalAPI-Assinatura` signature in a Code node.

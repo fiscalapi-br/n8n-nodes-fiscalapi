@@ -5,6 +5,7 @@ export { difalDescription } from './difal';
 export { nfeDescription } from './nfe';
 export { nfeMonitorDescription } from './nfeMonitor';
 export { nfseDescription } from './nfse';
+export { nfseIssuanceDescription } from './nfseIssuance';
 export { producerProfileDescription } from './producerProfile';
 export { ruralPropertyDescription } from './ruralProperty';
 export { simplesNacionalDescription } from './simplesNacional';
