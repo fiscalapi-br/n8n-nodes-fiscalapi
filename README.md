@@ -1,5 +1,7 @@
 # n8n-nodes-fiscalapi
 
+Nó oficial do n8n para consultar inscrição estadual (SINTEGRA) nos 27 estados, CNPJ na Receita Federal, Simples Nacional, certidões (CND estadual, CND Federal, CNDT, CRF/FGTS), XML de NF-e e de CT-e pela chave e imóvel rural no CNIR/CAFIR e no SIGEF, sem programar. O Monitor de NF-e acompanha a nota pela chave, sem certificado, e avisa quando ela é cancelada. Instale o pacote `n8n-nodes-fiscalapi` em **Settings > Community Nodes**. Guia em português: [docs.fiscalapi.com.br/docs/guias/n8n](https://docs.fiscalapi.com.br/docs/guias/n8n).
+
 This is an n8n community node. It lets you use [FiscalAPI](https://fiscalapi.com.br) in your n8n workflows.
 
 FiscalAPI is a Brazilian REST API for tax and registration lookups: state registrations (Inscrição Estadual) in all 27 states, company data by CNPJ, tax clearance certificates, NF-e and CT-e XML and NFS-e by access key, NF-e monitoring by access key with webhook notices, NFS-e issuance (national standard), outbound DIFAL per destination state, Simples Nacional status and rural property records (SIGEF and CNIR).
@@ -59,7 +61,7 @@ Each operation returns the JSON response of the API as one item (NFe Monitor →
 
 1. Create an account at [app.fiscalapi.com.br](https://app.fiscalapi.com.br) and copy your API key from the dashboard.
 2. In n8n, create a **FiscalAPI API** credential and paste the key. The key is sent in the `X-API-Key` header.
-3. **10 free queries per month, in the dashboard and through the API**: state registration in one state (Get by State) and Company (Get), for accounts that never had a plan, with a confirmed email and no top-up. They do not cover "Get in All States" or live CNPJ lookups. After that you need a plan or credits: the API returns HTTP `402`. Without a key it returns `403` (`API_KEY_ERROR`). See [plans and limits](https://docs.fiscalapi.com.br/docs/referencia/plans-and-limits).
+3. **Plan or credits:** through the API (and so in n8n), every query needs a plan or extra credits, from R$ 50 per month. The 10 free queries per month are only in the dashboard (app.fiscalapi.com.br): try it there before subscribing. Without a plan or credits, the API returns HTTP `402`. Without a key it returns `403` (`API_KEY_ERROR`). See [plans and limits](https://docs.fiscalapi.com.br/docs/referencia/plans-and-limits).
 
 Testing the credential calls a free endpoint and does not consume credits.
 
@@ -76,7 +78,7 @@ Built with `@n8n/node-cli` and n8n nodes API version 1. Targets n8n 1.x and late
 - **Outbound DIFAL (beta).** Requires the A1 certificate of the **issuer** of the invoices and its password, plus the month (`YYYY-MM`). Leave *Destination States* empty to check all 10 covered states (AC, AP, DF, GO, MS, MT, RR, RS, SC, SE). Each state comes in `ufs[]` with a `status`: only `ok` is charged (one query per state). Only `paga` settles a note: `sem_guia_no_portal`, `pendente_pagamento` and `geracao_rejeitada` add up to `valor_em_aberto`, except in DF, GO and MT, where the slip is issued in the state tax system and a `sem_guia_no_portal` note adds up to `valor_a_conferir` (the state comes with a `mensagem` explaining it). Payment slips issued outside the portal (ERP, Portal GNRE) do not show up. `completo: false` means at least one state did not come back complete. See the [documentation](https://docs.fiscalapi.com.br/docs/difal/consultar-difal-saida).
 - **NFe Monitor.** FiscalAPI follows each NF-e at SEFAZ for up to 180 days and sends a signed webhook notice when the note is cancelled, denied or gets an event (correction letter, for example). No certificate needed. *Add Keys* takes up to 1,000 keys per call (comma, space or new line separated); each accepted key is charged once, already monitored and invalid keys (`situacao: invalida`, with `motivo`) are not charged; without enough balance for all of them the API returns `402` and no key is added. The webhook URL itself (and its secret) is set once through the API: `PUT /api/monitor-nfe/webhook` (see [Receiving NF-e Monitor notices](#receiving-nf-e-monitor-notices)).
 - **Long queries.** NF-e and SIGEF queries can take up to 3 minutes. The node waits up to 200 seconds.
-- **Errors.** `402` means the free monthly queries, the plan or the credits ran out. `429` means the per-minute limit of your plan was reached; enable **Retry On Fail** in the node settings to retry automatically.
+- **Errors.** `402` means the account has no plan or the credits ran out. `429` means the per-minute limit of your plan was reached; enable **Retry On Fail** in the node settings to retry automatically.
 
 ## Receiving NF-e Monitor notices
 
